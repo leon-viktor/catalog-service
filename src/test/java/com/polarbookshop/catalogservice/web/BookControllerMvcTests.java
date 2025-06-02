@@ -37,7 +37,38 @@ class BookControllerMvcTests {
     ObjectMapper objectMapper;
 
     @MockitoBean
-    private BookService bookService;
+    BookService bookService;
+
+    @Test
+    void whenGetBookExistingAndAuthenticatedThenShouldReturn200() throws Exception {
+        var isbn = "7373731394";
+        var expectedBook = Book.of(isbn, "Title", "Author", 9.90, "Polarsophia");
+        given(bookService.viewBookDetails(isbn)).willReturn(expectedBook);
+        mockMvc
+                .perform(get("/books/" + isbn)
+                        .with(jwt()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenGetBookExistingAndNotAuthenticatedThenShouldReturn200() throws Exception {
+        var isbn = "7373731394";
+        var expectedBook = Book.of(isbn, "Title", "Author", 9.90, "Polarsophia");
+        given(bookService.viewBookDetails(isbn)).willReturn(expectedBook);
+        mockMvc
+                .perform(get("/books/" + isbn))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenGetBookNotExistingAndAuthenticatedThenShouldReturn404() throws Exception {
+        var isbn = "7373731394";
+        given(bookService.viewBookDetails(isbn)).willThrow(BookNotFoundException.class);
+        mockMvc
+                .perform(get("/books/" + isbn)
+                        .with(jwt()))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     void whenGetBookNotExistingAndNotAuthenticatedThenShouldReturn404() throws Exception {
